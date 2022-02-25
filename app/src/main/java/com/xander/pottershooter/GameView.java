@@ -5,6 +5,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Handler;
@@ -28,9 +30,11 @@ public class GameView extends View {
     Handler handler;
     Runnable runnable;
     final long UPDATE_MILLIS = 30;
-    static int launcherWidth, launcherHeight;
+    static int launcherWidth, launcherHeight, launcherX, launcherY;
     Context context;
     int count =0;
+    Paint paint = new Paint();
+    float CurrentAimingX, CurrentAimingY;
 
 
     public GameView(Context context) {
@@ -45,7 +49,7 @@ public class GameView extends View {
         dHeight = size.y;
         rect = new Rect(0,0,dWidth,dHeight);
         handler = new Handler();
-       runnable = (Runnable) () -> {invalidate();};
+        runnable = (Runnable) () -> {invalidate();};
         brooms = new ArrayList<>();
         bludgers = new ArrayList<>();
         for(int i=0;i<2;i++){
@@ -58,13 +62,18 @@ public class GameView extends View {
         }
         launcherWidth = launcher.getWidth();
         launcherHeight = launcher.getHeight();
-
+        launcherX = dWidth/2 - launcherWidth/2;
+        launcherY = dHeight-launcherHeight;
+        paint.setColor(Color.BLACK);
+        paint.setStrokeWidth(10);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
+
         super.onDraw(canvas);
         canvas.drawBitmap(background, null,rect,null);
+        canvas.drawLine(launcherX, launcherY, CurrentAimingX, CurrentAimingY, paint);
         Broom currentBroom;
         for(int i=0; i<brooms.size(); i++){
             currentBroom = brooms.get(i);
@@ -93,7 +102,17 @@ public class GameView extends View {
                 if (currentBludger.bludgerFrame > currentBludger.getFrameCount()) {
                     currentBludger.bludgerFrame = 0;
                 }
-                currentBludger.y -= currentBludger.bVelocity;
+                int currentVelocityX, currentVelocityY;
+                float currentRise,currentRun,totalTarget;
+                currentRise = (int)currentBludger.targetY - launcherY;
+                currentRun = (int)currentBludger.targetX - launcherX;
+                totalTarget = Math.abs(currentRise) + Math.abs(currentRun);
+                float PercentToRise, PercentToRun;
+                PercentToRise = (float) Math.abs(currentRise)/totalTarget;
+                PercentToRun =(float)currentRun/totalTarget;
+
+                currentBludger.y -= (int)(currentBludger.bVelocity * (Math.abs(currentRise)/totalTarget));
+                currentBludger.x += (int)(currentBludger.bVelocity * (currentRun/totalTarget));
                 canvas.drawBitmap(currentBludger.getBludger(), currentBludger.x, currentBludger.y, null);
 
                 Broom curentBroomDetection;
@@ -114,7 +133,7 @@ public class GameView extends View {
                 bludgers.remove(i);
             }
         }
-        canvas.drawBitmap(launcher,(dWidth/2 - launcherWidth/2),dHeight-launcherHeight,null);
+        canvas.drawBitmap(launcher,launcherX,launcherY,null);
         handler.postDelayed(runnable, UPDATE_MILLIS);
     }
 
@@ -123,13 +142,19 @@ public class GameView extends View {
         float touchX = event.getX();
         float touchY = event.getY();
         int action = event.getAction();
-        if(action == MotionEvent.ACTION_DOWN){
+        CurrentAimingX = touchX;
+        CurrentAimingY = touchY;
+
+
+        if(action == MotionEvent.ACTION_UP){
                 Log.i("launcher","is tapped");
                 if (bludgers.size() < 4){
-                   Bludger b  = new Bludger(context);
+                   Bludger b  = new Bludger(context,touchX,touchY,launcherX,launcherY);
                    bludgers.add(b);
                 }
         }
         return  true;
     }
+
+
 }

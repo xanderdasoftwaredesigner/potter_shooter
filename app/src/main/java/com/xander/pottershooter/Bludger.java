@@ -8,9 +8,12 @@ public class Bludger{
     public int getBludgerWidth;
     int x, y;
     int bVelocity;
+    float targetX,targetY;
     int bludgerFrame;
     Bitmap bludger[] = new Bitmap[13];
-    public Bludger(Context context) {
+    public Bludger(Context context, float targetX, float targetY, float startX, float startY) {
+        this.targetX =targetX;
+        this.targetY = targetY;
         bludger[0] = BitmapFactory.decodeResource(context.getResources(),R.drawable.bludger_0);
         bludger[1] = BitmapFactory.decodeResource(context.getResources(),R.drawable.bludger_1);
         bludger[2] = BitmapFactory.decodeResource(context.getResources(),R.drawable.bludger_2);
@@ -24,13 +27,13 @@ public class Bludger{
         bludger[10] = BitmapFactory.decodeResource(context.getResources(),R.drawable.bludger_10);
         bludger[11] = BitmapFactory.decodeResource(context.getResources(),R.drawable.bludger_11);
         bludger[12] = BitmapFactory.decodeResource(context.getResources(),R.drawable.bludger_12);
-        x = GameView.dWidth/2 - getBludgerWidth()/2;
-        y = GameView.dHeight - GameView.launcherHeight - getBludgerHeight()/2;
+        x = (int)(startX - getBludgerWidth()/2);
+        y = (int)(startY - getBludgerHeight()/2);
+        //y = GameView.dHeight - GameView.launcherHeight - getBludgerHeight()/2;
         bVelocity = 50;
         bludgerFrame = 0;
     }
     public Bitmap getBludger() { return bludger[bludgerFrame]; }
-
     public int getBludgerWidth(){
         return bludger[0].getWidth();
     }
